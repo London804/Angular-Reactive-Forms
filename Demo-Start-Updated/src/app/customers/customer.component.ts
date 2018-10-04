@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormGroup, FormControl, FormBuilder, Validators, ValidatorFn } from '@angular/forms';
+import { AbstractControl, FormGroup, FormControl, FormBuilder, FormArray, Validators, ValidatorFn } from '@angular/forms';
 
 import { Customer } from './customer';
+import { debounceTime } from 'rxjs/operators';
 
 function ratingRange(min: number, max: number): ValidatorFn {
   return (c: AbstractControl): { [key: string]: boolean } | null => {
@@ -47,6 +48,10 @@ export class CustomerComponent implements OnInit {
     pattern: 'Please enter a valid email address.'
   };
 
+  get addresses(): FormArray {
+    return <FormArray>this.customerForm.get('addresses');
+  }
+
   ngOnInit() {
 
     // this is the form model that tracks the value and state
@@ -61,16 +66,18 @@ export class CustomerComponent implements OnInit {
       notification: 'email',
       rating: ['' , ratingRange(1,5)],
       // comments: {value: 'n/a', disabled: true},
-      sendCatalog: true
+      sendCatalog: true,
+      addresses: this.fb.array([this.buildAddress()])
     })
 
     this.customerForm.get('notification').valueChanges
                       .subscribe(value => this.setNotification(value))
 
-    // const emailControl = this.customerForm.get('emailGroup.email');
-    // emailControl.valueChanges.subscribe(value =>
-    //     this.setMessage(emailControl)
-    // )
+    // watching for errors in email
+    const emailControl = this.customerForm.get('emailGroup.email');
+    emailControl.valueChanges.pipe(debounceTime(1000)).subscribe(value =>
+        this.setMessage(emailControl)
+    )
 
     // this is the form model that tracks the value and state
     // this.customerForm = new FormGroup({
@@ -80,6 +87,22 @@ export class CustomerComponent implements OnInit {
     //   sendCatalog: new FormControl(true)
     // })
   }
+
+  buildAddress(): FormGroup {
+    return this.fb.group({
+      addressType: 'home',
+      street1: ['', Validators.required],
+      street2: '',
+      city: '',
+      state: '',
+      zip: ''
+    });
+  }
+
+  addAddress(): void {
+    this.addresses.push(this.buildAddress());
+  }
+
 
   save() {
     console.log(this.customerForm);
