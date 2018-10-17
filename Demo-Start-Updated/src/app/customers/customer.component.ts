@@ -66,9 +66,10 @@ export class CustomerComponent implements OnInit {
       notification: 'email',
       rating: ['' , ratingRange(1,5)],
       // comments: {value: 'n/a', disabled: true},
-      sendCatalog: true,
+      sendCatalog: '',
       addresses: this.fb.array([this.buildAddress()])
     })
+
 
     this.customerForm.get('notification').valueChanges
                       .subscribe(value => this.setNotification(value))
@@ -79,6 +80,7 @@ export class CustomerComponent implements OnInit {
         this.setMessage(emailControl)
     )
 
+    // *At a basic level this is what the FormGroup({}) does
     // this is the form model that tracks the value and state
     // this.customerForm = new FormGroup({
     //   firstName: new FormControl(),
